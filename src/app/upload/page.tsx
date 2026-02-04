@@ -4,12 +4,11 @@ import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { mondayWeekStartISO } from "@/lib/week";
-
-type User = { id: string; team_id: string; name: string };
+import { Player } from "@/types/player";
 
 export default function UploadPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Player[]>([]);
   const [userId, setUserId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
@@ -23,7 +22,7 @@ export default function UploadPage() {
         console.error('Players query error:', error);
         setStatus(error.message);
       } else {
-        setUsers((data ?? []) as User[]);
+        setUsers((data ?? []) as Player[]);
       }
     })();
   }, []);

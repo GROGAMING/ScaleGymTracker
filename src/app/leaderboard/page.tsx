@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { mondayWeekStartISO } from "@/lib/week";
 import MetQuotaTick from "@/components/MetQuotaTick";
+import { Player } from "@/types/player";
 
 type Row = { name: string; count: number };
 
@@ -11,7 +12,7 @@ export default function LeaderboardPage() {
   const weekStart = useMemo(() => mondayWeekStartISO(new Date()), []);
   const [weekly, setWeekly] = useState<Row[]>([]);
   const [overall, setOverall] = useState<Row[]>([]);
-  const [users, setUsers] = useState<{ id: string; team_id: string; name: string }[]>([]);
+  const [users, setUsers] = useState<Player[]>([]);
   const [status, setStatus] = useState("");
 
 
@@ -40,7 +41,7 @@ export default function LeaderboardPage() {
 
       const weeklyData = (w.data ?? []) as Row[];
       const overallData = (o.data ?? []) as Row[];
-      const allUsers = (u.data ?? []) as { id: string; team_id: string; name: string }[];
+      const allUsers = (u.data ?? []) as Player[];
       
       setUsers(allUsers);
       

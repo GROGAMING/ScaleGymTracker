@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useMemo, useState, useEffect, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import ReportQuota from "@/components/ReportQuota";
+import { Player } from "@/types/player";
 
 function dublinMondayWeekStartISO(d: Date): string {
   const parts = new Intl.DateTimeFormat("en", {
@@ -37,7 +38,7 @@ export default function AdminReportPage() {
 
   const [weekly, setWeekly] = useState<{ name: string; count: number }[]>([]);
   const [overall, setOverall] = useState<{ name: string; count: number }[]>([]);
-  const [users, setUsers] = useState<{ name: string }[]>([]);
+  const [users, setUsers] = useState<Player[]>([]);
   const [status, setStatus] = useState("");
 
   const load = async () => {
@@ -45,16 +46,25 @@ export default function AdminReportPage() {
     const [w, o, u] = await Promise.all([
       supabase.rpc("get_leaderboard_week", { p_week_start: weekStart }),
       supabase.rpc("get_leaderboard_overall"),
-      supabase.from("users").select("name").order("name")
+      supabase.from("players").select("id,team_id,name").order("name")
     ]);
 
-    if (w.error) return setStatus(w.error.message);
-    if (o.error) return setStatus(o.error.message);
-    if (u.error) return setStatus(u.error.message);
+    if (w.error) {
+      console.error('Weekly leaderboard error:', w.error);
+      return setStatus(w.error.message);
+    }
+    if (o.error) {
+      console.error('Overall leaderboard error:', o.error);
+      return setStatus(o.error.message);
+    }
+    if (u.error) {
+      console.error('Players query error:', u.error);
+      return setStatus(u.error.message);
+    }
 
     const weeklyData = (w.data ?? []) as { name: string; count: number }[];
     const overallData = (o.data ?? []) as { name: string; count: number }[];
-    const allUsers = (u.data ?? []) as { name: string }[];
+    const allUsers = (u.data ?? []) as Player[];
     
     setUsers(allUsers);
     

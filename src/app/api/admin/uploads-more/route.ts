@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from("uploads")
-    .select("id, created_at, image_path, status, users(name)")
+    .select("id, created_at, image_path, status, players(name)")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       .getPublicUrl(row.image_path);
     return {
       id: row.id,
-      name: row.users?.name ?? "Unknown",
+      name: row.players?.name ?? "Unknown",
       created_at: row.created_at,
       image_path: row.image_path,
       publicUrl
