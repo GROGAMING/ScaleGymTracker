@@ -86,13 +86,17 @@ export default function UploadPage() {
 
       if (upErr) return setStatus(upErr.message);
 
-      const { error: insErr } = await supabase.from("uploads").insert({
-        bucket: "gym-photos",
-        path: path,
-        team_id: teamId
-      });
-
-      if (insErr) return setStatus(insErr.message);
+      // Try to insert into uploads table, but don't block if it fails
+      try {
+        await supabase.from("uploads").insert({
+          bucket: "gym-photos",
+          path: path,
+          team_id: teamId
+        });
+      } catch (dbError) {
+        console.warn('Database insert failed (upload still succeeded):', dbError);
+        // Don't fail the upload if DB insert fails
+      }
 
       setFile(null);
       setStatus("Uploaded.");

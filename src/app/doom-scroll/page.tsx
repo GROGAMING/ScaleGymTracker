@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 type Item = {
   id: string;
   name: string;
-  created_at: string;
-  image_path: string;
+  createdAt: string;
+  path: string;
   publicUrl: string;
   caption?: string | null;
 };
@@ -52,7 +52,7 @@ export default function DoomScrollPage() {
     if (isPaused || loadingMore) return;
     setLoadingMore(true);
     try {
-      const lastCreatedAt = items[items.length - 1]?.created_at;
+      const lastCreatedAt = items[items.length - 1]?.createdAt;
       if (!lastCreatedAt) return;
       const res = await fetch(`/api/doom-scroll?before=${encodeURIComponent(lastCreatedAt)}&existingCount=${items.length}`);
       if (!res.ok) return;
@@ -106,7 +106,7 @@ export default function DoomScrollPage() {
             />
             <p style={{ margin: "8px 0 4px", fontSize: "0.9rem", fontWeight: "bold" }}>{x.name}</p>
             <p style={{ margin: 0, fontSize: "0.75rem", color: "#666" }}>
-              {new Date(x.created_at).toLocaleString()}
+              {new Date(x.createdAt).toLocaleString()}
             </p>
           </div>
         ))}
@@ -153,7 +153,7 @@ export default function DoomScrollPage() {
               <b>{selected.name}</b>
               <br />
               <span style={{ fontSize: "0.85rem", color: "#666" }}>
-                {new Date(selected.created_at).toLocaleString()}
+                {new Date(selected.createdAt).toLocaleString()}
               </span>
             </div>
             <img
