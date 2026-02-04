@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const before = searchParams.get("before");
+  const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
   const limit = before ? 10 : 10; // always 10, max 40 total
 
   // For doom-scroll, enforce max 40 items total
@@ -20,8 +21,9 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from("uploads")
-    .select("id, created_at, image_path, status, players(name)")
-    .eq("status", "active")
+    .select("id, created_at, path, bucket, team_id, players(name)")
+    .eq("bucket", "gym-photos")
+    .eq("team_id", teamId)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -41,12 +43,12 @@ export async function GET(request: NextRequest) {
   const items = (data ?? []).map((row: any) => {
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from("gym-photos")
-      .getPublicUrl(row.image_path);
+      .getPublicUrl(row.path);
     return {
       id: row.id,
       name: row.players?.name ?? "Unknown",
       created_at: row.created_at,
-      image_path: row.image_path,
+      image_path: row.path,
       publicUrl
     };
   });

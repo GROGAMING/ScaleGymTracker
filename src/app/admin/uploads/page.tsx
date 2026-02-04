@@ -16,10 +16,12 @@ export default async function AdminUploadsPage() {
     return <main style={{ padding: 20, fontFamily: "system-ui" }}>Not logged in.</main>;
   }
 
+  const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
   const { data, error } = await supabaseAdmin
     .from("uploads")
-    .select("id, created_at, image_path, status, players(name)")
-    .eq("status", "active")
+    .select("id, created_at, path, bucket, team_id, players(name)")
+    .eq("bucket", "gym-photos")
+    .eq("team_id", teamId)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -31,12 +33,12 @@ export default async function AdminUploadsPage() {
   const items: Item[] = (data ?? []).map((row: any) => {
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from("gym-photos")
-      .getPublicUrl(row.image_path);
+      .getPublicUrl(row.path);
     return {
       id: row.id,
       name: row.players?.name ?? "Unknown",
       created_at: row.created_at,
-      image_path: row.image_path,
+      image_path: row.path,
       publicUrl
     };
   });

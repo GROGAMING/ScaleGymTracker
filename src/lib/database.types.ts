@@ -57,32 +57,23 @@ export type Database = {
         Row: {
           id: string;
           created_at: string;
-          image_path: string;
-          display_path: string | null;
-          thumb_path: string | null;
-          content_hash: string | null;
-          status: string;
-          user_id: string;
+          path: string;
+          bucket: string;
+          team_id: string | null;
         };
         Insert: {
-          id: string;
-          created_at: string;
-          image_path: string;
-          display_path: string | null;
-          thumb_path: string | null;
-          content_hash: string | null;
-          status: string;
-          user_id: string;
+          id?: string;
+          created_at?: string;
+          path: string;
+          bucket?: string;
+          team_id?: string | null;
         };
         Update: {
-          id: string;
-          created_at: string;
-          image_path: string;
-          display_path: string | null;
-          thumb_path: string | null;
-          content_hash: string | null;
-          status: string;
-          user_id: string;
+          id?: string;
+          created_at?: string;
+          path?: string;
+          bucket?: string;
+          team_id?: string | null;
         };
       };
     };

@@ -72,9 +72,9 @@ export default function UploadPage() {
       const fileToUpload = await compressImage(f).catch(() => f); // fallback to original
 
       setStatus("Uploading...");
-      const weekStart = mondayWeekStartISO(new Date());
+      const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
       const ext = (fileToUpload.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${weekStart}/${userId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${teamId}/${crypto.randomUUID()}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("gym-photos")
@@ -87,9 +87,9 @@ export default function UploadPage() {
       if (upErr) return setStatus(upErr.message);
 
       const { error: insErr } = await supabase.from("uploads").insert({
-        user_id: userId,
-        image_path: path,
-        status: "active"
+        bucket: "gym-photos",
+        path: path,
+        team_id: teamId
       });
 
       if (insErr) return setStatus(insErr.message);
