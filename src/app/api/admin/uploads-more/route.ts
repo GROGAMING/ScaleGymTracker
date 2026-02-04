@@ -11,13 +11,9 @@ export async function GET(request: NextRequest) {
     .from("uploads")
     .select("id, created_at, bucket, path, team_id, caption")
     .eq("bucket", "gym-photos")
+    .like("path", `${teamId}/%`)
     .order("created_at", { ascending: false })
     .limit(limit);
-
-  // Filter by team_id if available, otherwise fallback to path prefix
-  if (teamId) {
-    query = query.or(`team_id.eq.${teamId},path.like.${teamId}/%`);
-  }
 
   if (before) {
     query = query.lt("created_at", before);
@@ -33,8 +29,9 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  if (!data || data.length === 0) {
-    console.log('Admin uploads-more: No uploads found for team', teamId);
+  console.log(`Admin uploads-more: Found ${data?.length || 0} rows for team ${teamId}`);
+  if (data && data.length > 0) {
+    console.log('First row:', { bucket: data[0].bucket, path: data[0].path });
   }
 
   const items = (data ?? []).map((row: any) => {

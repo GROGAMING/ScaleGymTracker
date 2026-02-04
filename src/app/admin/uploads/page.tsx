@@ -21,7 +21,7 @@ export default async function AdminUploadsPage() {
     .from("uploads")
     .select("id, created_at, bucket, path, team_id, caption")
     .eq("bucket", "gym-photos")
-    .or(`team_id.eq.${teamId},path.like.${teamId}/%`)
+    .like("path", `${teamId}/%`)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -30,8 +30,9 @@ export default async function AdminUploadsPage() {
     return <main style={{ padding: 20, fontFamily: "system-ui" }}>{error.message}</main>;
   }
 
-  if (!data || data.length === 0) {
-    console.log('Admin uploads: No uploads found for team', teamId);
+  console.log(`Admin uploads: Found ${data?.length || 0} rows for team ${teamId}`);
+  if (data && data.length > 0) {
+    console.log('First row:', { bucket: data[0].bucket, path: data[0].path });
   }
 
   const items: Item[] = (data ?? []).map((row: any) => {
