@@ -19,9 +19,18 @@ export default async function AdminUploadsPage() {
   const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
   const { data, error } = await supabaseAdmin
     .from("uploads")
-    .select("id, created_at, bucket, path, team_id, caption")
+    .select(`
+      id, 
+      created_at, 
+      bucket, 
+      path, 
+      team_id, 
+      player_id,
+      caption,
+      players!inner(name)
+    `)
     .eq("bucket", "gym-photos")
-    .like("path", `${teamId}/%`)
+    .eq("team_id", teamId)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -42,7 +51,7 @@ export default async function AdminUploadsPage() {
       .getPublicUrl(row.path);
     return {
       id: row.id,
-      name: "Apostles Member", // Since we don't have player join, use generic name
+      name: row.players?.name || "Unknown Player",
       created_at: row.created_at,
       image_path: row.path,
       publicUrl

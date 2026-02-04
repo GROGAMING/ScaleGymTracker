@@ -91,7 +91,8 @@ export default function UploadPage() {
         await supabase.from("uploads").insert({
           bucket: "gym-photos",
           path: path,
-          team_id: teamId
+          team_id: teamId,
+          player_id: userId
         });
       } catch (dbError) {
         console.warn('Database insert failed (upload still succeeded):', dbError);

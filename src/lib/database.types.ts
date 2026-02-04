@@ -60,6 +60,8 @@ export type Database = {
           path: string;
           bucket: string;
           team_id: string | null;
+          player_id: string | null;
+          caption: string | null;
         };
         Insert: {
           id?: string;
@@ -67,6 +69,8 @@ export type Database = {
           path: string;
           bucket?: string;
           team_id?: string | null;
+          player_id?: string | null;
+          caption?: string | null;
         };
         Update: {
           id?: string;
@@ -74,6 +78,8 @@ export type Database = {
           path?: string;
           bucket?: string;
           team_id?: string | null;
+          player_id?: string | null;
+          caption?: string | null;
         };
       };
     };

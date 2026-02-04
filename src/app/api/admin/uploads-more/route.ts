@@ -9,9 +9,18 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from("uploads")
-    .select("id, created_at, bucket, path, team_id, caption")
+    .select(`
+      id, 
+      created_at, 
+      bucket, 
+      path, 
+      team_id, 
+      player_id,
+      caption,
+      players!inner(name)
+    `)
     .eq("bucket", "gym-photos")
-    .like("path", `${teamId}/%`)
+    .eq("team_id", teamId)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -41,7 +50,7 @@ export async function GET(request: NextRequest) {
       .getPublicUrl(row.path);
     return {
       id: row.id,
-      name: "Apostles Member", // Since we don't have player join, use generic name
+      name: row.players?.name || "Unknown Player",
       created_at: row.created_at,
       image_path: row.path,
       publicUrl,
