@@ -8,6 +8,7 @@ type Item = {
   created_at: string;
   image_path: string;
   publicUrl: string;
+  caption?: string | null;
 };
 
 export default function DoomScrollPage() {

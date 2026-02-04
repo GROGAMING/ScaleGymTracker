@@ -19,9 +19,9 @@ export default async function AdminUploadsPage() {
   const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
   const { data, error } = await supabaseAdmin
     .from("uploads")
-    .select("id, created_at, path, bucket, team_id, players(name)")
+    .select("id, created_at, bucket, path, team_id, caption")
     .eq("bucket", "gym-photos")
-    .eq("team_id", teamId)
+    .or(`team_id.eq.${teamId},path.like.${teamId}/%`)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -30,13 +30,18 @@ export default async function AdminUploadsPage() {
     return <main style={{ padding: 20, fontFamily: "system-ui" }}>{error.message}</main>;
   }
 
+  if (!data || data.length === 0) {
+    console.log('Admin uploads: No uploads found for team', teamId);
+  }
+
   const items: Item[] = (data ?? []).map((row: any) => {
+    const bucket = row.bucket || 'gym-photos';
     const { data: { publicUrl } } = supabaseAdmin.storage
-      .from("gym-photos")
+      .from(bucket)
       .getPublicUrl(row.path);
     return {
       id: row.id,
-      name: row.players?.name ?? "Unknown",
+      name: "Apostles Member", // Since we don't have player join, use generic name
       created_at: row.created_at,
       image_path: row.path,
       publicUrl

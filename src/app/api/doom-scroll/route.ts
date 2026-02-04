@@ -21,11 +21,15 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from("uploads")
-    .select("id, created_at, path, bucket, team_id, players(name)")
+    .select("id, created_at, bucket, path, team_id, caption")
     .eq("bucket", "gym-photos")
-    .eq("team_id", teamId)
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  // Filter by team_id if available, otherwise fallback to path prefix
+  if (teamId) {
+    query = query.or(`team_id.eq.${teamId},path.like.${teamId}/%`);
+  }
 
   if (before) {
     query = query.lt("created_at", before);
@@ -34,22 +38,29 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
 
   if (error) {
+    console.error('Doom-scroll query error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "content-type": "application/json" }
     });
   }
 
+  if (!data || data.length === 0) {
+    console.log('Doom-scroll: No uploads found for team', teamId);
+  }
+
   const items = (data ?? []).map((row: any) => {
+    const bucket = row.bucket || 'gym-photos';
     const { data: { publicUrl } } = supabaseAdmin.storage
-      .from("gym-photos")
+      .from(bucket)
       .getPublicUrl(row.path);
     return {
       id: row.id,
-      name: row.players?.name ?? "Unknown",
+      name: "Apostles Member", // Since we don't have player join, use generic name
       created_at: row.created_at,
       image_path: row.path,
-      publicUrl
+      publicUrl,
+      caption: row.caption || null
     };
   });
 
