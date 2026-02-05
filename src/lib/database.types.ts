@@ -61,6 +61,7 @@ export type Database = {
           bucket: string;
           team_id: string | null;
           player_id: string | null;
+          player_name: string | null;
           caption: string | null;
         };
         Insert: {
@@ -70,6 +71,7 @@ export type Database = {
           bucket?: string;
           team_id?: string | null;
           player_id?: string | null;
+          player_name?: string | null;
           caption?: string | null;
         };
         Update: {
@@ -79,6 +81,7 @@ export type Database = {
           bucket?: string;
           team_id?: string | null;
           player_id?: string | null;
+          player_name?: string | null;
           caption?: string | null;
         };
       };

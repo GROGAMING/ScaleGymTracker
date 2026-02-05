@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
       path, 
       team_id, 
       player_id,
-      caption,
-      players!inner(name)
+      player_name,
+      caption
     `)
     .eq("bucket", "gym-photos")
     .eq("team_id", teamId)
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       .getPublicUrl(row.path);
     return {
       id: row.id,
-      name: row.players?.name || "Unknown Player",
+      name: row.player_name || "Unknown player",
       created_at: row.created_at,
       image_path: row.path,
       publicUrl,

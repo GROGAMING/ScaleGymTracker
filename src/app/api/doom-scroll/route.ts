@@ -10,6 +10,7 @@ interface UploadRow {
   path: string;
   team_id: string;
   player_id: string | null;
+  player_name: string | null;
   caption: string | null;
 }
 
@@ -31,44 +32,56 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Query uploads directly from storage
-    const { data: files, error: listError } = await supabaseAdmin.storage
-      .from('gym-photos')
-      .list(TEAM_ID, { 
-        limit: 50, 
-        sortBy: { column: 'updated_at', order: 'desc' } 
-      });
+    // Query uploads directly to get player_name
+    const { data: uploads, error: queryError } = await supabaseAdmin
+      .from("uploads")
+      .select(`
+        id, 
+        created_at, 
+        bucket, 
+        path, 
+        team_id, 
+        player_id,
+        player_name,
+        caption
+      `)
+      .eq("bucket", "gym-photos")
+      .eq("team_id", TEAM_ID)
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    if (listError) {
-      console.error('Storage list error:', listError);
-      return new Response(JSON.stringify({ error: listError.message }), {
+    if (queryError) {
+      console.error('Uploads query error:', queryError);
+      return new Response(JSON.stringify({ error: queryError.message }), {
         status: 500,
         headers: { "content-type": "application/json" }
       });
     }
 
-    const fileCount = files?.length || 0;
-    console.log(`Doom-scroll: Found ${fileCount} files in storage for team ${TEAM_ID}`);
+    const uploadCount = uploads?.length || 0;
+    console.log(`Doom-scroll: Found ${uploadCount} uploads for team ${TEAM_ID}`);
     
-    if (files && files.length > 0) {
-      const firstPaths = files.slice(0, 3).map(f => `${TEAM_ID}/${f.name}`);
-      console.log('First 3 full paths:', firstPaths);
+    if (uploads && uploads.length > 0) {
+      const firstPaths = uploads.slice(0, 3).map(u => u.path);
+      console.log('First 3 paths:', firstPaths);
+      
+      const firstNames = uploads.slice(0, 3).map(u => u.player_name);
+      console.log('First 3 player names:', firstNames);
     }
 
-    // Convert storage files to response format
-    const items = (files || []).map((file: any) => {
-      const fullPath = `${TEAM_ID}/${file.name}`;
+    // Convert uploads to response format
+    const items = (uploads || []).map((upload: UploadRow) => {
       const { data: { publicUrl } } = supabaseAdmin.storage
         .from('gym-photos')
-        .getPublicUrl(fullPath);
+        .getPublicUrl(upload.path);
       
       return {
-        id: file.name,
-        path: fullPath,
+        id: upload.id,
+        path: upload.path,
         publicUrl,
-        createdAt: file.created_at,
-        name: "Unknown Player",
-        caption: null
+        createdAt: upload.created_at,
+        name: upload.player_name || "Unknown player",
+        caption: upload.caption
       };
     });
 
@@ -91,8 +104,8 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Doom-scroll storage error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to load from storage' }), {
+    console.error('Doom-scroll error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to load uploads' }), {
       status: 500,
       headers: { "content-type": "application/json" }
     });

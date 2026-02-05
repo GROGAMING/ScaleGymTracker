@@ -88,11 +88,16 @@ export default function UploadPage() {
 
       // Try to insert into uploads table, but don't block if it fails
       try {
+        // Get the selected player's name from the dropdown
+        const selectedPlayer = users.find(u => u.id === userId);
+        const playerName = selectedPlayer?.name || null;
+        
         await supabase.from("uploads").insert({
           bucket: "gym-photos",
           path: path,
           team_id: teamId,
-          player_id: userId
+          player_id: userId,
+          player_name: playerName
         });
       } catch (dbError) {
         console.warn('Database insert failed (upload still succeeded):', dbError);
