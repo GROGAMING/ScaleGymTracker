@@ -8,6 +8,17 @@ import { Player } from "@/types/player";
 
 type Row = { name: string; count: number };
 
+function groupCounts(data: { player_name: string | null }[]): Row[] {
+  const map = new Map<string, number>();
+  data.forEach(row => {
+    const name = row.player_name || "Unknown player";
+    map.set(name, (map.get(name) || 0) + 1);
+  });
+  return Array.from(map.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
 export default function LeaderboardPage() {
   const weekStart = useMemo(() => mondayWeekStartISO(new Date()), []);
   const [weekly, setWeekly] = useState<Row[]>([]);
@@ -20,27 +31,20 @@ export default function LeaderboardPage() {
     (async () => {
       setStatus("");
 
-      const [w, o, u] = await Promise.all([
-        supabase.rpc("get_leaderboard_week", { p_week_start: weekStart }),
-        supabase.rpc("get_leaderboard_overall"),
+      const [weeklyUploads, overallUploads, u] = await Promise.all([
+        supabase.from("uploads").select("player_name").gte("created_at", weekStart),
+        supabase.from("uploads").select("player_name"),
         supabase.from("players").select("id,team_id,name").order("name")
       ]);
 
-      if (w.error) {
-        console.error('Weekly leaderboard error:', w.error);
-        return setStatus(w.error.message);
-      }
-      if (o.error) {
-        console.error('Overall leaderboard error:', o.error);
-        return setStatus(o.error.message);
-      }
-      if (u.error) {
-        console.error('Players query error:', u.error);
-        return setStatus(u.error.message);
+      if (weeklyUploads.error || overallUploads.error || u.error) {
+        const err = weeklyUploads.error || overallUploads.error || u.error;
+        console.error('Query error:', err);
+        return setStatus(err.message);
       }
 
-      const weeklyData = (w.data ?? []) as Row[];
-      const overallData = (o.data ?? []) as Row[];
+      const weeklyData = groupCounts(weeklyUploads.data || []);
+      const overallData = groupCounts(overallUploads.data || []);
       const allUsers = (u.data ?? []) as Player[];
       
       setUsers(allUsers);
