@@ -40,7 +40,7 @@ export default function LeaderboardPage() {
       if (weeklyUploads.error || overallUploads.error || u.error) {
         const err = weeklyUploads.error || overallUploads.error || u.error;
         console.error('Query error:', err);
-        return setStatus(err.message);
+        return setStatus(err?.message ?? "Unknown error");
       }
 
       const weeklyData = groupCounts(weeklyUploads.data || []);
