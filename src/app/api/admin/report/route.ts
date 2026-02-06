@@ -22,13 +22,13 @@ export async function GET(req: Request) {
     });
   }
 
-  const [weekly, overall, users] = await Promise.all([
-    supabaseAdmin.rpc("get_leaderboard_week", { p_week_start: weekStart }),
-    supabaseAdmin.rpc("get_leaderboard_overall"),
-    supabaseAdmin.from("users").select("name").order("name")
+  const [weeklyUploads, overallUploads, usersRes] = await Promise.all([
+    supabaseAdmin.from("uploads").select("player_name").gte("created_at", weekStart),
+    supabaseAdmin.from("uploads").select("player_name"),
+    supabaseAdmin.from("players").select("name").order("name")
   ]);
 
-  const errMsg = weekly.error?.message || overall.error?.message || users.error?.message;
+  const errMsg = weeklyUploads.error?.message || overallUploads.error?.message || usersRes.error?.message;
   if (errMsg) {
     return new Response(JSON.stringify({ error: errMsg }), {
       status: 500,
@@ -36,9 +36,20 @@ export async function GET(req: Request) {
     });
   }
 
-  const weeklyRows = (weekly.data ?? []) as { name: string; count: number }[];
-  const overallRows = (overall.data ?? []) as { name: string; count: number }[];
-  const allNames = ((users.data ?? []) as { name: string }[]).map((x) => x.name);
+  const groupCounts = (data: { player_name: string | null }[]) => {
+    const map = new Map<string, number>();
+    data.forEach(row => {
+      const name = row.player_name || "Unknown player";
+      map.set(name, (map.get(name) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  const weeklyRows = groupCounts(weeklyUploads.data || []);
+  const overallRows = groupCounts(overallUploads.data || []);
+  const allNames = ((usersRes.data ?? []) as { name: string }[]).map((x) => x.name);
 
   const weeklyMap = new Map(weeklyRows.map((r) => [r.name, r.count]));
   const met = allNames.filter((n) => (weeklyMap.get(n) ?? 0) >= 2);
