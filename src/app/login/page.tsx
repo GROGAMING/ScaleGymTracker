@@ -30,6 +30,7 @@ export default function LoginPage() {
     localStorage.setItem('dev_role', 'admin');
     localStorage.setItem('active_team_id', 'd18014dc-bba2-4980-be27-bdd1fa45f58c'); // Apostles
     router.replace('/doom-scroll');
+    setTimeout(() => router.replace('/doom-scroll'), 50); // Fallback
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
