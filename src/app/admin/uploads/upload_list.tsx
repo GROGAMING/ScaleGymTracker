@@ -6,7 +6,7 @@ type Item = {
   id: string;
   name: string;
   created_at: string;
-  image_path: string;
+  path: string;
   publicUrl: string;
 };
 

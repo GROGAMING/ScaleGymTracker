@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       id: row.id,
       name: row.player_name || "Unknown player",
       created_at: row.created_at,
-      image_path: row.path,
+      path: row.path,
       publicUrl,
       caption: row.caption || null
     };

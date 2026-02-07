@@ -11,18 +11,18 @@ export async function POST(req: Request) {
 
   const { data: row, error: rErr } = await supabaseAdmin
     .from("uploads")
-    .select("id, image_path")
+    .select("id, bucket, path")
     .eq("id", uploadId)
     .single();
 
   if (rErr) return NextResponse.json({ error: rErr.message }, { status: 500 });
 
-  const { error: sErr } = await supabaseAdmin.storage.from("gym-photos").remove([row.image_path]);
+  const { error: sErr } = await supabaseAdmin.storage.from(row.bucket).remove([row.path]);
   if (sErr) return NextResponse.json({ error: sErr.message }, { status: 500 });
 
   const { error: uErr } = await supabaseAdmin
     .from("uploads")
-    .update({ status: "deleted" })
+    .delete()
     .eq("id", uploadId);
 
   if (uErr) return NextResponse.json({ error: uErr.message }, { status: 500 });

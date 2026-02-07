@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("uploads")
-    .select("id, user_id, created_at, image_path")
+    .select("id, user_id, created_at, path")
     .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(100);
@@ -39,7 +39,7 @@ export async function GET() {
     (data ?? []).map(async (row: any) => {
       const { data: signed, error: signErr } = await supabaseAdmin.storage
         .from("gym-photos")
-        .createSignedUrl(row.image_path, 600);
+        .createSignedUrl(row.path, 600);
       const signedUrl = signed?.signedUrl ?? "";
 
       return {

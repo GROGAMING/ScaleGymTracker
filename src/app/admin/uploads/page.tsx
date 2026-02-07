@@ -6,7 +6,7 @@ type Item = {
   id: string;
   name: string;
   created_at: string;
-  image_path: string;
+  path: string;
   publicUrl: string;
 };
 
@@ -53,7 +53,7 @@ export default async function AdminUploadsPage() {
       id: row.id,
       name: row.player_name || "Unknown player",
       created_at: row.created_at,
-      image_path: row.path,
+      path: row.path,
       publicUrl
     };
   });
