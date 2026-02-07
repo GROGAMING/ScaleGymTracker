@@ -24,26 +24,12 @@ export default function LoginPage() {
     checkSession();
   }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      setMessage(error.message);
-    } else {
-      setMessage("Check your email for the login link.");
-    }
-  };
-
   const handleSkipLogin = () => {
-    setDevUser('admin'); // Choose admin
-    router.push("/join");
+    localStorage.setItem('dev_mode', '1');
+    localStorage.setItem('dev_user_id', crypto.randomUUID());
+    localStorage.setItem('dev_role', 'admin');
+    localStorage.setItem('active_team_id', 'd18014dc-bba2-4980-be27-bdd1fa45f58c'); // Apostles
+    window.location.href = '/doom-scroll';
   };
 
   return (
@@ -62,14 +48,12 @@ export default function LoginPage() {
           Send Magic Link
         </button>
       </form>
-      {DEV_BYPASS && (
-        <button
-          onClick={handleSkipLogin}
-          style={{ width: "100%", padding: 10, marginTop: 10, backgroundColor: "#f0f0f0" }}
-        >
-          Skip login (testing)
-        </button>
-      )}
+      <button
+        onClick={handleSkipLogin}
+        style={{ width: "100%", padding: 10, marginTop: 10, backgroundColor: "#f0f0f0" }}
+      >
+        Skip login (TESTING)
+      </button>
       {message && <p>{message}</p>}
     </div>
   );
