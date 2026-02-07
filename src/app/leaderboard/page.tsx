@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { mondayWeekStartISO } from "@/lib/week";
 import { useActiveTeam } from "@/lib/useActiveTeam";
+import { Player } from "@/types/player";
 
 type Row = { name: string; count: number };
 
