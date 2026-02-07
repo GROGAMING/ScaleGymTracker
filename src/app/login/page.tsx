@@ -32,6 +32,23 @@ export default function LoginPage() {
     window.location.href = '/doom-scroll';
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage("Check your email for the login link.");
+    }
+  };
+
   return (
     <div style={{ padding: 20, maxWidth: 400, margin: "0 auto", fontFamily: "system-ui" }}>
       <h2>Login / Sign Up</h2>
