@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useMemo, useState, useEffect, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useActiveTeam } from "@/lib/useActiveTeam";
+import { isAdmin } from "@/lib/devAuth";
 import ReportQuota from "@/components/ReportQuota";
 import { Player } from "@/types/player";
 
@@ -120,6 +121,7 @@ export default function AdminReportPage() {
 
   if (teamLoading) return <div>Loading team...</div>;
   if (!activeTeamId) return <div>No active team</div>;
+  if (!isAdmin()) return <div>Access denied</div>;
 
   return (
     <main style={{ padding: 20, maxWidth: 720, margin: "0 auto", fontFamily: "system-ui" }}>

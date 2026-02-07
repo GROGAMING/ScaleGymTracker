@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { DEV_BYPASS, isDevMode, setDevUser, getActiveTeamId } from "@/lib/devAuth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,8 +13,12 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push("/");
+      if (session || isDevMode()) {
+        if (getActiveTeamId()) {
+          router.push("/");
+        } else {
+          router.push("/join");
+        }
       }
     };
     checkSession();
@@ -36,6 +41,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleSkipLogin = () => {
+    setDevUser('admin'); // Choose admin
+    router.push("/join");
+  };
+
   return (
     <div style={{ padding: 20, maxWidth: 400, margin: "0 auto", fontFamily: "system-ui" }}>
       <h2>Login / Sign Up</h2>
@@ -52,6 +62,14 @@ export default function LoginPage() {
           Send Magic Link
         </button>
       </form>
+      {DEV_BYPASS && (
+        <button
+          onClick={handleSkipLogin}
+          style={{ width: "100%", padding: 10, marginTop: 10, backgroundColor: "#f0f0f0" }}
+        >
+          Skip login (testing)
+        </button>
+      )}
       {message && <p>{message}</p>}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useActiveTeam } from "@/lib/useActiveTeam";
+import { isAdmin } from "@/lib/devAuth";
 import AdminUploadList from "./upload_list";
 
 type Item = {
@@ -14,6 +15,10 @@ type Item = {
 };
 
 export default function AdminUploadsPage() {
+  if (!isAdmin()) {
+    return <div>Access denied</div>;
+  }
+
   const { activeTeamId, loading } = useActiveTeam();
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState<string | null>(null);
