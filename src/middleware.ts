@@ -13,7 +13,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Public paths
-  if (pathname.startsWith('/login') || pathname.startsWith('/join')) {
+  if (pathname.startsWith('/login') || pathname.startsWith('/join') || pathname.startsWith('/onboarding') || pathname.startsWith('/auth')) {
     return res;
   }
 
@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
     .single();
 
   if (!profile?.active_team_id) {
-    return NextResponse.redirect(new URL('/join', req.url));
+    return NextResponse.redirect(new URL('/onboarding', req.url));
   }
 
   return res;

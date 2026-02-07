@@ -13,9 +13,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { joinCode } = await req.json();
-  if (!joinCode) {
-    return NextResponse.json({ error: "Missing joinCode" }, { status: 400 });
+  const { joinCode, fullName } = await req.json();
+  if (!joinCode || !fullName) {
+    return NextResponse.json({ error: "Missing joinCode or fullName" }, { status: 400 });
   }
 
   // Find team
@@ -39,10 +39,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: memberErr.message }, { status: 500 });
   }
 
-  // Set active_team_id
+  // Set active_team_id and full_name
   const { error: profileErr } = await supabase
     .from("profiles")
-    .upsert({ user_id: session.user.id, active_team_id: team.id });
+    .upsert({ user_id: session.user.id, active_team_id: team.id, full_name: fullName });
 
   if (profileErr) {
     return NextResponse.json({ error: profileErr.message }, { status: 500 });
