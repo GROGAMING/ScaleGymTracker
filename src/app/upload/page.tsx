@@ -4,6 +4,7 @@ import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useActiveTeam } from "@/lib/useActiveTeam";
+import { Player } from "@/types/player";
 
 export default function UploadPage() {
   const router = useRouter();
