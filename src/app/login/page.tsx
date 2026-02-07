@@ -25,12 +25,7 @@ export default function LoginPage() {
   }, [router]);
 
   const handleSkipLogin = () => {
-    localStorage.setItem('dev_mode', '1');
-    localStorage.setItem('dev_user_id', crypto.randomUUID());
-    localStorage.setItem('dev_role', 'admin');
-    localStorage.setItem('active_team_id', 'd18014dc-bba2-4980-be27-bdd1fa45f58c'); // Apostles
-    router.replace('/doom-scroll');
-    setTimeout(() => router.replace('/doom-scroll'), 50); // Fallback
+    window.location.href = "/api/dev-login";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

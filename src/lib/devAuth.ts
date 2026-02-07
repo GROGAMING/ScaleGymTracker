@@ -5,22 +5,25 @@ const DEV_BYPASS = process.env.NEXT_PUBLIC_DEV_BYPASS === 'true';
 
 export const isDevMode = () => {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem('dev_mode') === '1';
+  return document.cookie.includes('dev_mode=1');
 };
 
 export const getDevUserId = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('dev_user_id');
+  const match = document.cookie.match(/dev_user_id=([^;]+)/);
+  return match ? match[1] : null;
 };
 
 export const getDevRole = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('dev_role');
+  const match = document.cookie.match(/dev_role=([^;]+)/);
+  return match ? match[1] : null;
 };
 
 export const getActiveTeamId = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('active_team_id');
+  const match = document.cookie.match(/active_team_id=([^;]+)/);
+  return match ? match[1] : null;
 };
 
 export const getTeamName = () => {
