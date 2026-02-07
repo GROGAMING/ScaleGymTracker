@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { mondayWeekStartISO } from "@/lib/week";
 import { useActiveTeam } from "@/lib/useActiveTeam";
 import { Player } from "@/types/player";
+import MetQuotaTick from "@/components/MetQuotaTick";
 
 type Row = { name: string; count: number };
 
