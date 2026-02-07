@@ -37,15 +37,17 @@ export async function POST(req: Request) {
   // Generate new join code
   let joinCode;
   let attempts = 0;
+  let existing: any = null;
   do {
     joinCode = generateJoinCode();
-    const { data } = await supabase
+    const { data: found } = await supabase
       .from("teams")
       .select("id")
       .eq("join_code", joinCode)
-      .single();
+      .maybeSingle();
+    existing = found;
     attempts++;
-  } while (data && attempts < 10);
+  } while (existing && attempts < 10);
 
   if (attempts >= 10) {
     return NextResponse.json({ error: "Failed to generate unique join code" }, { status: 500 });
