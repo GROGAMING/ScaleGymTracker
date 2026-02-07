@@ -9,6 +9,11 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
+  // Skip auth checks in dev bypass mode
+  if (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true') {
+    return res;
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
