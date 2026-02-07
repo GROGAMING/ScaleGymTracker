@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
-  const response = NextResponse.redirect('/doom-scroll');
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  const response = NextResponse.redirect(new URL("/doom-scroll", request.url));
   const userId = crypto.randomUUID();
   response.cookies.set('dev_mode', '1', {
     path: '/',

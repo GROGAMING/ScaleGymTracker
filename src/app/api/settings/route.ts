@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequiredWeeklySessionsServer, setRequiredWeeklySessionsServer } from "@/lib/settings";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 // Helper to check admin authentication
 function isAdmin(): boolean {
   return cookies().get("admin_authed")?.value === "1";
