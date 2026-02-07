@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { mondayWeekStartISO } from "@/lib/week";
-import MetQuotaTick from "@/components/MetQuotaTick";
-import { Player } from "@/types/player";
+import { useActiveTeam } from "@/lib/useActiveTeam";
 
 type Row = { name: string; count: number };
 
@@ -20,6 +19,7 @@ function groupCounts(data: { player_name: string | null }[]): Row[] {
 }
 
 export default function LeaderboardPage() {
+  const { activeTeamId, loading: teamLoading } = useActiveTeam();
   const weekStart = useMemo(() => mondayWeekStartISO(new Date()), []);
   const [weekly, setWeekly] = useState<Row[]>([]);
   const [overall, setOverall] = useState<Row[]>([]);
@@ -28,13 +28,14 @@ export default function LeaderboardPage() {
 
 
   useEffect(() => {
+    if (!activeTeamId) return;
     (async () => {
       setStatus("");
 
       const [weeklyUploads, overallUploads, u] = await Promise.all([
-        supabase.from("uploads").select("player_name").gte("created_at", weekStart),
-        supabase.from("uploads").select("player_name"),
-        supabase.from("players").select("id,team_id,name").order("name")
+        supabase.from("uploads").select("player_name").gte("created_at", weekStart).eq("team_id", activeTeamId),
+        supabase.from("uploads").select("player_name").eq("team_id", activeTeamId),
+        supabase.from("players").select("id,team_id,name").order("name").eq("team_id", activeTeamId)
       ]);
 
       if (weeklyUploads.error || overallUploads.error || u.error) {
@@ -66,7 +67,10 @@ export default function LeaderboardPage() {
       setWeekly(weeklyWithAll);
       setOverall(overallWithAll);
     })();
-  }, [weekStart]);
+  }, [weekStart, activeTeamId]);
+
+  if (teamLoading) return <div>Loading...</div>;
+  if (!activeTeamId) return <div>No team selected</div>;
 
   return (
     <main style={{ padding: 20, maxWidth: 520, margin: "0 auto", fontFamily: "system-ui" }}>

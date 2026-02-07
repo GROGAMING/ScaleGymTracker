@@ -1,5 +1,8 @@
-import { cookies } from "next/headers";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useActiveTeam } from "@/lib/useActiveTeam";
 import AdminUploadList from "./upload_list";
 
 type Item = {
@@ -10,53 +13,56 @@ type Item = {
   publicUrl: string;
 };
 
-export default async function AdminUploadsPage() {
-  const authed = cookies().get("admin_authed")?.value === "1";
-  if (!authed) {
-    return <main style={{ padding: 20, fontFamily: "system-ui" }}>Not logged in.</main>;
-  }
+export default function AdminUploadsPage() {
+  const { activeTeamId, loading } = useActiveTeam();
+  const [items, setItems] = useState<Item[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
-  const { data, error } = await supabaseAdmin
-    .from("uploads")
-    .select(`
-      id, 
-      created_at, 
-      bucket, 
-      path, 
-      team_id, 
-      player_id,
-      player_name,
-      caption
-    `)
-    .eq("bucket", "gym-photos")
-    .eq("team_id", teamId)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  useEffect(() => {
+    if (!activeTeamId) return;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from("uploads")
+        .select(`
+          id,
+          created_at,
+          bucket,
+          path,
+          team_id,
+          player_id,
+          player_name,
+          caption
+        `)
+        .eq("bucket", "gym-photos")
+        .eq("team_id", activeTeamId)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-  if (error) {
-    console.error('Admin uploads query error:', error);
-    return <main style={{ padding: 20, fontFamily: "system-ui" }}>{error.message}</main>;
-  }
-
-  console.log(`Admin uploads: Found ${data?.length || 0} rows for team ${teamId}`);
-  if (data && data.length > 0) {
-    console.log('First row:', { bucket: data[0].bucket, path: data[0].path });
-  }
-
-  const items: Item[] = (data ?? []).map((row: any) => {
-    const bucket = row.bucket || 'gym-photos';
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from(bucket)
-      .getPublicUrl(row.path);
-    return {
-      id: row.id,
-      name: row.player_name || "Unknown player",
-      created_at: row.created_at,
-      path: row.path,
-      publicUrl
+      if (error) {
+        setError(error.message);
+      } else {
+        const itemsData = (data ?? []).map((row: any) => {
+          const bucket = row.bucket || 'gym-photos';
+          const { data: { publicUrl } } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(row.path);
+          return {
+            id: row.id,
+            name: row.player_name || "Unknown player",
+            created_at: row.created_at,
+            path: row.path,
+            publicUrl
+          };
+        });
+        setItems(itemsData);
+      }
     };
-  });
+    load();
+  }, [activeTeamId]);
+
+  if (loading) return <main style={{ padding: 20, fontFamily: "system-ui" }}>Loading...</main>;
+  if (!activeTeamId) return <main style={{ padding: 20, fontFamily: "system-ui" }}>No team selected.</main>;
+  if (error) return <main style={{ padding: 20, fontFamily: "system-ui" }}>{error}</main>;
 
   return (
     <main style={{ padding: 20, maxWidth: 960, margin: "0 auto", fontFamily: "system-ui" }}>

@@ -3,11 +3,11 @@
 import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { mondayWeekStartISO } from "@/lib/week";
-import { Player } from "@/types/player";
+import { useActiveTeam } from "@/lib/useActiveTeam";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { activeTeamId, loading: teamLoading } = useActiveTeam();
   const [users, setUsers] = useState<Player[]>([]);
   const [userId, setUserId] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -16,8 +16,9 @@ export default function UploadPage() {
 
 
   useEffect(() => {
+    if (!activeTeamId) return;
     (async () => {
-      const { data, error } = await supabase.from("players").select("id,team_id,name").order("name");
+      const { data, error } = await supabase.from("players").select("id,team_id,name").order("name").eq("team_id", activeTeamId);
       if (error) {
         console.error('Players query error:', error);
         setStatus(error.message);
@@ -25,7 +26,7 @@ export default function UploadPage() {
         setUsers((data ?? []) as Player[]);
       }
     })();
-  }, []);
+  }, [activeTeamId]);
 
   async function compressImage(file: File): Promise<File> {
     return new Promise((resolve, reject) => {
@@ -58,7 +59,7 @@ export default function UploadPage() {
   }
 
   async function onSubmit(selectedFile?: File | null) {
-    if (uploading) return;
+    if (uploading || !activeTeamId) return;
 
     setStatus("");
     if (!userId) return setStatus("Select your name.");
@@ -72,9 +73,8 @@ export default function UploadPage() {
       const fileToUpload = await compressImage(f).catch(() => f); // fallback to original
 
       setStatus("Uploading...");
-      const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
       const ext = (fileToUpload.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${teamId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${activeTeamId}/${crypto.randomUUID()}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from("gym-photos")
@@ -95,7 +95,7 @@ export default function UploadPage() {
         await supabase.from("uploads").insert({
           bucket: "gym-photos",
           path: path,
-          team_id: teamId,
+          team_id: activeTeamId,
           player_id: userId,
           player_name: playerName
         });
@@ -112,6 +112,9 @@ export default function UploadPage() {
       setUploading(false);
     }
   }
+
+  if (teamLoading) return <div>Loading...</div>;
+  if (!activeTeamId) return <div>No team selected</div>;
 
   return (
     <main style={{ padding: 20, maxWidth: 520, margin: "0 auto", fontFamily: "system-ui" }}>

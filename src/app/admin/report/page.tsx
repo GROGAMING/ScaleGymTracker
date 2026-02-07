@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useMemo, useState, useEffect, ChangeEvent } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useActiveTeam } from "@/lib/useActiveTeam";
 import ReportQuota from "@/components/ReportQuota";
 import { Player } from "@/types/player";
 
@@ -32,6 +33,7 @@ function todayISO() {
 }
 
 export default function AdminReportPage() {
+  const { activeTeamId, loading: teamLoading } = useActiveTeam();
   const [dateInWeek, setDateInWeek] = useState(todayISO());
 
   const weekStart = useMemo(() => dublinMondayWeekStartISO(new Date(dateInWeek)), [dateInWeek]);
@@ -42,15 +44,16 @@ export default function AdminReportPage() {
   const [status, setStatus] = useState("");
 
   const load = async () => {
+    if (!activeTeamId) return;
     setStatus("");
     const weekStartDate = new Date(weekStart + 'T00:00:00.000Z');
     const weekEndDate = new Date(weekStartDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     const weekEndIso = weekEndDate.toISOString();
 
     const [w, o, u] = await Promise.all([
-      supabase.from('uploads').select('player_name').gte('created_at', weekStart + 'T00:00:00.000Z').lt('created_at', weekEndIso),
-      supabase.from('uploads').select('player_name'),
-      supabase.from("players").select("id,team_id,name").order("name")
+      supabase.from('uploads').select('player_name').gte('created_at', weekStart + 'T00:00:00.000Z').lt('created_at', weekEndIso).eq('team_id', activeTeamId),
+      supabase.from('uploads').select('player_name').eq('team_id', activeTeamId),
+      supabase.from("players").select("id,team_id,name").order("name").eq('team_id', activeTeamId)
     ]);
 
     if (w.error) {
@@ -102,13 +105,10 @@ export default function AdminReportPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const sp = new URLSearchParams(window.location.search);
-      const ws = sp.get("weekStart");
-      if (ws) setDateInWeek(ws);
+    if (activeTeamId) {
+      load();
     }
-    load();
-  }, []);
+  }, [activeTeamId, weekStart]);
 
   const weeklyMap = new Map(weekly.map((r: { name: string; count: number }) => [r.name, r.count]));
   const met = users.map((u: { name: string }) => u.name).filter((n: string) => (weeklyMap.get(n) ?? 0) >= 2);
@@ -116,13 +116,10 @@ export default function AdminReportPage() {
 
   const handleWeekChange = (v: string) => {
     setDateInWeek(v);
-    if (typeof window !== "undefined") {
-      const u = new URL(window.location.href);
-      u.searchParams.set("weekStart", dublinMondayWeekStartISO(new Date(v)));
-      window.history.replaceState({}, "", u);
-    }
-    load();
   };
+
+  if (teamLoading) return <div>Loading team...</div>;
+  if (!activeTeamId) return <div>No active team</div>;
 
   return (
     <main style={{ padding: 20, maxWidth: 720, margin: "0 auto", fontFamily: "system-ui" }}>

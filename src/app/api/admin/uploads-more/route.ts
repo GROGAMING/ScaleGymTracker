@@ -1,13 +1,40 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const supabase = createRouteHandlerClient({ cookies });
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "content-type": "application/json" }
+    });
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('active_team_id')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (!profile?.active_team_id) {
+    return new Response(JSON.stringify({ error: "No active team" }), {
+      status: 400,
+      headers: { "content-type": "application/json" }
+    });
+  }
+
   const { searchParams } = new URL(request.url);
   const before = searchParams.get("before");
-  const teamId = "d18014dc-bba2-4980-be27-bdd1fa45f58c";
+  const teamId = profile.active_team_id;
   const limit = before ? 50 : 50; // always 50
 
-  let query = supabaseAdmin
+  let query = supabase
     .from("uploads")
     .select(`
       id, 
@@ -45,7 +72,7 @@ export async function GET(request: NextRequest) {
 
   const items = (data ?? []).map((row: any) => {
     const bucket = row.bucket || 'gym-photos';
-    const { data: { publicUrl } } = supabaseAdmin.storage
+    const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(row.path);
     return {
