@@ -43,27 +43,42 @@ export default function AdminReportPage() {
 
   const load = async () => {
     setStatus("");
+    const weekStartDate = new Date(weekStart + 'T00:00:00.000Z');
+    const weekEndDate = new Date(weekStartDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const weekEndIso = weekEndDate.toISOString();
+
     const [w, o, u] = await Promise.all([
-      supabase.rpc("get_leaderboard_week", { p_week_start: weekStart }),
-      supabase.rpc("get_leaderboard_overall"),
+      supabase.from('uploads').select('player_name').gte('created_at', weekStart + 'T00:00:00.000Z').lt('created_at', weekEndIso),
+      supabase.from('uploads').select('player_name'),
       supabase.from("players").select("id,team_id,name").order("name")
     ]);
 
     if (w.error) {
-      console.error('Weekly leaderboard error:', w.error);
-      return setStatus(w.error.message);
+      console.error('Weekly uploads error:', w.error);
+      return setStatus(w.error?.message || "Weekly query failed");
     }
     if (o.error) {
-      console.error('Overall leaderboard error:', o.error);
-      return setStatus(o.error.message);
+      console.error('Overall uploads error:', o.error);
+      return setStatus(o.error?.message || "Overall query failed");
     }
     if (u.error) {
       console.error('Players query error:', u.error);
-      return setStatus(u.error.message);
+      return setStatus(u.error?.message || "Players query failed");
     }
 
-    const weeklyData = (w.data ?? []) as { name: string; count: number }[];
-    const overallData = (o.data ?? []) as { name: string; count: number }[];
+    const groupCounts = (data: { player_name: string | null }[]) => {
+      const map = new Map<string, number>();
+      data.forEach(row => {
+        const name = row.player_name || "Unknown player";
+        map.set(name, (map.get(name) || 0) + 1);
+      });
+      return Array.from(map.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+    };
+
+    const weeklyData = groupCounts(w.data ?? []);
+    const overallData = groupCounts(o.data ?? []);
     const allUsers = (u.data ?? []) as Player[];
     
     setUsers(allUsers);
