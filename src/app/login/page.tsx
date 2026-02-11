@@ -25,7 +25,11 @@ export default function LoginPage() {
   }, [router]);
 
   const handleSkipLogin = () => {
-    window.location.href = "/api/dev-login";
+    console.log("SKIP CLICKED");
+    console.log("origin", window.location.origin);
+    document.cookie = "dev_mode=1; path=/; samesite=lax";
+    document.cookie = "active_team_id=d18014dc-bba2-4980-be27-bdd1fa45f58c; path=/; samesite=lax";
+    window.location.assign("/");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
