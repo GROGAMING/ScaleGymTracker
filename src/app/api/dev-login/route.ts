@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const response = NextResponse.redirect(new URL("/doom-scroll", request.url));
+  const response = NextResponse.redirect(new URL("/", request.url));
   const userId = crypto.randomUUID();
   response.cookies.set('dev_mode', '1', {
     path: '/',
