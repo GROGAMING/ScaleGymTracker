@@ -6,13 +6,11 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 // Dev mode checks are done on client-side in components
 
 export async function middleware(req: NextRequest) {
+  const dev = req.cookies.get('dev_mode')?.value === '1';
+  if (dev) return NextResponse.next();
+
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
-
-  // Skip auth checks if dev_mode cookie is set
-  if (req.cookies.get('dev_mode')?.value === '1') {
-    return res;
-  }
 
   const {
     data: { session },
