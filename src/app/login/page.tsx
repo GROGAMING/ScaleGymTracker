@@ -8,6 +8,9 @@ import { DEV_BYPASS, isDevMode, setDevUser, getActiveTeamId } from "@/lib/devAut
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [createdTeamId, setCreatedTeamId] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -30,6 +33,29 @@ export default function LoginPage() {
     document.cookie = "dev_mode=1; path=/; samesite=lax";
     document.cookie = "active_team_id=d18014dc-bba2-4980-be27-bdd1fa45f58c; path=/; samesite=lax";
     window.location.assign("/");
+  };
+
+  const handleCreateTeam = async () => {
+    try {
+      const res = await fetch('/api/admin/create-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: teamName })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setJoinCode(data.joinCode);
+        setCreatedTeamId(data.teamId);
+        if (isDevMode()) {
+          localStorage.setItem('active_team_id', data.teamId);
+          router.replace('/');
+        }
+      } else {
+        setMessage(data.error);
+      }
+    } catch (err) {
+      setMessage('Error creating team');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +97,22 @@ export default function LoginPage() {
       >
         Skip login (TESTING)
       </button>
+      <hr />
+      <h3>Create Team</h3>
+      <input
+        type="text"
+        placeholder="Team Name"
+        value={teamName}
+        onChange={(e) => setTeamName(e.target.value)}
+        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+      />
+      <button onClick={handleCreateTeam} style={{ width: "100%", padding: 10 }}>Create Team</button>
+      {joinCode && (
+        <div>
+          <p>Join Code: {joinCode} <button onClick={() => navigator.clipboard.writeText(joinCode)}>Copy</button></p>
+          <p>Team ID: {createdTeamId}</p>
+        </div>
+      )}
       {message && <p>{message}</p>}
     </div>
   );
